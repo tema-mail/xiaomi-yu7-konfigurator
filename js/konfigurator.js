@@ -261,7 +261,7 @@
     $("[data-slot=stage-name]").textContent = D.car + " " + V.name;
     $("[data-slot=stage-note]").textContent = [opt(selRole("paint")).name, opt(selRole("wheel")).name, selRole("int") ? "салон " + opt(selRole("int")).name : ""].filter(Boolean).join(" · ");
     if (history.replaceState) history.replaceState(null, "", c.hash);
-    var detail = { text: c.text, lines: c.lines, config: c.codes, url: location.href.split("#")[0] + c.hash };
+    var detail = { version: V.id, text: c.text, lines: c.lines, config: c.codes, url: location.href.split("#")[0] + c.hash };
     window.ZeekrCfg = { get: function () { return detail; } };
     root.dispatchEvent(new CustomEvent("zeekr:change", { bubbles: true, detail: detail }));
   }
@@ -298,7 +298,14 @@
   });
   root.addEventListener("change", function (e) {
     var sku = e.target.getAttribute("data-extra");
-    if (sku) { state.sel[sku] = e.target.checked ? e.target.value : null; update(null, false); if (isInt(state.shot)) show(); }
+    if (sku) {
+      var before = srcFor(state.shot);
+      state.sel[sku] = e.target.checked ? e.target.value : null;
+      // галочка, от которой зависит кадр кузова (зеркала, обвес, спойлер): показываем кузов и обновляем картинку
+      if ((version().vehicleSkus || []).indexOf(sku) !== -1 && isInt(state.shot)) state.shot = "hero";
+      update(null, false);
+      if (srcFor(state.shot) !== before) show();
+    }
     if (e.target.name === "agree") $("form.z9__form button[type=submit]").disabled = !e.target.checked;
   });
   stage.addEventListener("keydown", function (e) { if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); step(e.key === "ArrowRight" ? 1 : -1); } });
